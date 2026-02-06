@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Will You Marry Me?</title>
+    <style>
+        /* ---------- 기본 레이아웃 ---------- */
+        body {
+            margin: 0;
+            height: 100vh;
+            background: #f0e5ff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;               /* No 버튼이 절대 위치로 움직이게 하기 위함 */
+        }
+
+        #main {
+            text-align: center;
+        }
+
+        /* 사진을 1.5배 크게 */
+        #topImg {
+            max-width: 135%;          /* 90% × 1.5 */
+            max-height: 52.5vh;       /* 35vh × 1.5 */
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 0 0 2rem 0;
+            color: #5d2a86;
+        }
+
+        .btn-wrapper {
+            display: flex;
+            justify-content: space-between;   /* Yes‑left / No‑right */
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;   /* 부드러운 확대·축소 */
+        }
+
+        #yesBtn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        #noBtn {
+            background: #4ecca3;
+            color: white;
+            position: absolute;          /* 움직일 때 반드시 absolute */
+        }
+
+        /* ---------- 오버레이 (폭죽·사진·텍스트) ---------- */
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;               /* 처음엔 숨김 */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        #overlay img {
+            max-width: 80%;
+            max-height: 70vh;
+            border-radius: 12px            box-shadow: 0 0 30px rgba(255,255,255,0.8);
+            margin-bottom: 1rem;
+        }
+
+        #overlay p {
+            color: #fff;
+            font-size: 2rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ---------- 1️⃣ 첫 화면 (이미지·제목·버튼) ---------- -->
+    <div id="main">
+        <img id="topImg"
+             src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLSulA0YRLwYKFItU1CKDkDspLb6K_Kj6pRA&s"
+             alt="Will You Marry Me?">
+
+        <h1>Will You Marry Me?</h1>
+
+        <div class="btn-wrapper">
+            <button id="yesBtn" class="btn">Yes</button>
+            <button id="noBtn" class="btn">No</button>
+        </div>
+    </div>
+
+    <!-- ---------- 2️⃣ 오버레이 (폭죽·사진·텍스트) ---------- -->
+    <div id="overlay">
+        <img src="https://i.pinimg.com/564x/fe/40/35/fe4035cd3b955e760174b307cb7d35f1.jpg"
+             alt="축하 이미지">
+        <p>댜댱해 하은웅니</p>
+    </div>
+
+    <!-- canvas‑confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        /* -------------------------------------------------
+           1) Yes 버튼 – 마우스 움직이면 1.2배 확대 (부드러운 모션)
+           ------------------------------------------------- */
+        const yesBtn = document.getElementById('yesBtn');
+
+        // 마우스 이동 전체에서 1.2배 확대
+        document.addEventListener('mousemove', () => {
+            yesBtn.style.transform = 'scale(1.2)';
+        });
+
+        // 마우스가 버튼 위에 올라가면 확대, 떠나면 원래대로 (보조 효과)
+        yesBtn.addEventListener('mouseenter', () => {
+            yesBtn.style.transform = 'scale(1.2)';
+        });
+        yesBtn.addEventListener('mouseleave', () => {
+            yesBtn.style.transform = 'scale(1)';
+        });
+
+        /* -------------------------------------------------
+           2) No 버튼 – 마우스가 가까워지면 도망
+           ------------------------------------------------- */
+        const noBtn = document.getElementById('noBtn');
+
+        // 초기 위치 : 화면 오른쪽에 임의 배치
+        function setNoBtnRandomPos() {
+            const btnRect = noBtn.getBoundingClientRect();
+            const maxX = window.innerWidth - btnRect.width;
+            const maxY = window.innerHeight - btnRect.height;
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+            noBtn.style.left = `${x}px`;
+            noBtn.style.top  = `${y}px`;
+        }
+        setNoBtnRandomPos();   // 첫 위치 지정
+
+        // 두 점 사이 거리 계산
+        function distance(x1, y1, x2, y2) {
+            return Math.hypot(x1 - x2, y1 - y2);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            const btnRect = noBtn.getBoundingClientRect();
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const btnCenterY = btnRect.top + btnRect.height / 2;
+
+            // 마우스가 버튼 중심에서 100px 이내이면 도망
+            if (distance(mouseX, mouseY, btnCenterX, btnCenterY) < 100) {
+                setNoBtnRandomPos();
+            }
+        });
+
+        /* -------------------------------------------------
+           3) Yes 버튼 클릭 → 첫 화면 사라지고 폭죽·오버레이 표시
+           ------------------------------------------------- */
+        const overlay = document.getElementById('overlay');
+        const mainDiv = document.getElementById('main');
+
+        yesBtn.addEventListener('click', () => {
+            // ① 첫 화면 숨기기
+            mainDiv.style.display = 'none';
+
+            // ② 폭죽 (confetti) 실행
+            const duration = 2000; // 2초
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(() => {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    return;
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                // 왼쪽에서
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0, 0.3), y: Math.random() - 0.2 }
+                }));
+                // 오른쪽에서
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 1), y: Math.random() - 0.2 }
+                }));
+            }, 250);
+
+            // ③ 오버레이 보이기
+            overlay.style.display = 'flex';
+        });
+
+        /* -------------------------------------------------
+           4) 오버레이 클릭 시 닫기 (선택 사항)
+           ------------------------------------------------- */
+        overlay.addEventListener('click', () => {
+            overlay.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
