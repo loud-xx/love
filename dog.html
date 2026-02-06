@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>눈아 할 말 이써.</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: #f0e5ff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #main {
+            text-align: center;
+        }
+
+        #topImg {
+            max-width: 135%;          
+            max-height: 52.5vh;       
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 0 0 2rem 0;
+            color: #5d2a86;
+        }
+
+        .btn-wrapper {
+            display: flex;
+            justify-content: space-between;   
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;   
+        }
+
+        #yesBtn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        #noBtn {
+            background: #4ecca3;
+            color: white;
+            position: absolute;
+        }
+
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;               
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        #overlay img {
+            max-width: 80%;
+            max-height: 70vh;
+            border-radius: 12px            box-shadow: 0 0 30px rgba(255,255,255,0.8);
+            margin-bottom: 1rem;
+        }
+
+        #overlay p {
+            color: #fff;
+            font-size: 2rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main">
+        <img id="topImg"
+             src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdp6N_Ovs8Ct-JHvIwj_VmpGgr6ysfvH7jlQ&s"
+             alt="누나 잠들면 안대.. 진실게임하자\n좋아하는 가나디 있어?">
+
+        <h1>누나 잠들면 안대.. 진실게임하쟈... 좋아하는 가나디 있어?</h1>
+
+        <div class="btn-wrapper">
+            <button id="yesBtn" class="btn">Yes</button>
+            <button id="noBtn" class="btn">No</button>
+        </div>
+    </div>
+
+    <div id="overlay">
+        <img src="https://t1.daumcdn.net/news/202105/25/animaldaily/20210525061836011oufy.jpg"
+             alt="축하 이미지">
+        <p>나도 눈아조아.. 잇힝잘쟈</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        const yesBtn = document.getElementById('yesBtn');
+
+        document.addEventListener('mousemove', () => {
+            yesBtn.style.transform = 'scale(1.2)';
+        });
+
+        yesBtn.addEventListener('mouseenter', () => {
+            yesBtn.style.transform = 'scale(1.2)';
+        });
+        yesBtn.addEventListener('mouseleave', () => {
+            yesBtn.style.transform = 'scale(1)';
+        });
+
+        const noBtn = document.getElementById('noBtn');
+
+        function setNoBtnRandomPos() {
+            const btnRect = noBtn.getBoundingClientRect();
+            const maxX = window.innerWidth - btnRect.width;
+            const maxY = window.innerHeight - btnRect.height;
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+            noBtn.style.left = `${x}px`;
+            noBtn.style.top  = `${y}px`;
+        }
+        setNoBtnRandomPos();
+
+        function distance(x1, y1, x2, y2) {
+            return Math.hypot(x1 - x2, y1 - y2);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            const btnRect = noBtn.getBoundingClientRect();
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const btnCenterY = btnRect.top + btnRect.height / 2;
+
+            if (distance(mouseX, mouseY, btnCenterX, btnCenterY) < 100) {
+                setNoBtnRandomPos();
+            }
+        });
+
+        const overlay = document.getElementById('overlay');
+        const mainDiv = document.getElementById('main');
+
+        yesBtn.addEventListener('click', () => {
+            mainDiv.style.display = 'none';
+
+            const duration = 2000; 
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(() => {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    return;
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+               
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0, 0.3), y: Math.random() - 0.2 }
+                }));
+                
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 1), y: Math.random() - 0.2 }
+                }));
+            }, 250);
+
+            
+            overlay.style.display = 'flex';
+        });
+
+        overlay.addEventListener('click', () => {
+            overlay.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
