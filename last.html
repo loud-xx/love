@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Will You Marry Me?</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: #f0e5ff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #main {
+            text-align: center;
+        }
+
+        #topImg {
+            max-width: 135%;
+            max-height: 52.5vh;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 0 0 2rem 0;
+            color: #5d2a86;
+        }
+
+        .btn-wrapper {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        #yesBtn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        #noBtn {
+            background: #4ecca3;
+            color: white;
+            position: absolute;
+        }
+
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        #overlay img {
+            max-width: 80%;
+            max-height: 70vh;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(255,255,255,0.8);
+            margin-bottom: 1rem;
+        }
+
+        #overlay p {
+            color: #fff;
+            font-size: 2rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="main">
+    <img id="topImg"
+         src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLSulA0YRLwYKFItU1CKDkDspLb6K_Kj6pRA&s">
+
+    <h1>Will You Marry Me?</h1>
+
+    <div class="btn-wrapper">
+        <button id="yesBtn" class="btn">Yes</button>
+        <button id="noBtn" class="btn">No</button>
+    </div>
+</div>
+
+<div id="overlay">
+    <img src="https://i.pinimg.com/564x/fe/40/35/fe4035cd3b955e760174b307cb7d35f1.jpg">
+    <p>댜댱해 하은웅니</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+/* ---------------- Yes 버튼: 1초마다 커짐 ---------------- */
+const yesBtn = document.getElementById('yesBtn');
+
+let scale = 1;
+const maxScale = 2.5;
+
+setInterval(() => {
+    if (scale < maxScale) {
+        scale += 0.08; // 커지는 크기 (툭툭 느낌)
+        yesBtn.style.transform = `scale(${scale})`;
+    }
+}, 1000);
+
+
+/* ---------------- No 버튼 부드럽게 도망 ---------------- */
+const noBtn = document.getElementById('noBtn');
+
+let btnX = window.innerWidth * 0.7;
+let btnY = window.innerHeight * 0.5;
+
+noBtn.style.left = btnX + 'px';
+noBtn.style.top = btnY + 'px';
+
+let mouseX = 0;
+let mouseY = 0;
+
+document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+
+function animate() {
+    const rect = noBtn.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const dx = centerX - mouseX;
+    const dy = centerY - mouseY;
+    const dist = Math.hypot(dx, dy);
+
+    const safeDistance = 150;
+
+    if (dist < safeDistance) {
+        const force = (safeDistance - dist) / safeDistance;
+
+        const moveX = (dx / dist) * force * 20;
+        const moveY = (dy / dist) * force * 20;
+
+        btnX += moveX;
+        btnY += moveY;
+    }
+
+    const maxX = window.innerWidth - rect.width;
+    const maxY = window.innerHeight - rect.height;
+
+    btnX = Math.max(0, Math.min(maxX, btnX));
+    btnY = Math.max(0, Math.min(maxY, btnY));
+
+    noBtn.style.left = btnX + 'px';
+    noBtn.style.top = btnY + 'px';
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+
+/* ---------------- Yes 클릭 이벤트 ---------------- */
+const overlay = document.getElementById('overlay');
+const mainDiv = document.getElementById('main');
+
+yesBtn.addEventListener('click', () => {
+    mainDiv.style.display = 'none';
+
+    const duration = 2000;
+    const animationEnd = Date.now() + duration;
+
+    const defaults = {
+        startVelocity: 30,
+        spread: 360,
+        ticks: 60,
+        zIndex: 9999
+    };
+
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            clearInterval(interval);
+            return;
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+
+        confetti({
+            ...defaults,
+            particleCount,
+            origin: { x: randomInRange(0, 0.3), y: Math.random() - 0.2 }
+        });
+
+        confetti({
+            ...defaults,
+            particleCount,
+            origin: { x: randomInRange(0.7, 1), y: Math.random() - 0.2 }
+        });
+
+    }, 250);
+
+    overlay.style.display = 'flex';
+});
+
+
+/* ---------------- 오버레이 닫기 ---------------- */
+overlay.addEventListener('click', () => {
+    overlay.style.display = 'none';
+});
+</script>
+
+</body>
+</html>
